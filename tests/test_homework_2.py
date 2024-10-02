@@ -27,7 +27,6 @@ def existing_items() -> list[int]:
         }
         for i in range(10)
     ]
-
     return [client.post("/item", json=item).json()["id"] for item in items]
 
 
@@ -76,7 +75,6 @@ def deleted_item(existing_item: dict[str, Any]) -> dict[str, Any]:
     return existing_item
 
 
-@pytest.mark.xfail()
 def test_post_cart() -> None:
     response = client.post("/cart")
 
@@ -160,7 +158,6 @@ def test_get_cart_list(query: dict[str, Any], status_code: int):
             assert quantity <= query["max_quantity"]
 
 
-@pytest.mark.xfail()
 def test_post_item() -> None:
     item = {"name": "test item", "price": 9.99}
     response = client.post("/item", json=item)
