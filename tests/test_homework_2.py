@@ -83,7 +83,6 @@ def test_post_cart() -> None:
     assert "id" in response.json()
 
 
-@pytest.mark.xfail()
 @pytest.mark.parametrize(
     ("cart", "not_empty"),
     [
