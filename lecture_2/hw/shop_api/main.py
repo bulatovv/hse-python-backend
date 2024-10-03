@@ -1,9 +1,11 @@
+from dataclasses import asdict
 from http import HTTPStatus
 from fastapi import FastAPI
 from collections import OrderedDict
 from types import SimpleNamespace
 from typing import Any
 from fastapi.responses import JSONResponse
+from lecture_2.hw.shop_api.models import Cart, Item
 from lecture_2.hw.shop_api.schemas import ItemCreate
 
 app = FastAPI(title="Shop API")
@@ -21,7 +23,9 @@ def get_last_key(od: OrderedDict, default: Any) -> Any:
 @app.post("/cart")
 async def create_cart():
     new_cart_id = get_last_key(storage.carts, -1) + 1
-    storage.carts[new_cart_id] = {}
+    storage.carts[new_cart_id] = Cart(id = new_cart_id)
+    
+
     return JSONResponse(
         content={'id': new_cart_id},
         headers={
@@ -34,10 +38,13 @@ async def create_cart():
 @app.post("/item")
 async def create_item(data: ItemCreate):
     new_item_id = get_last_key(storage.items, -1) + 1
-    data_dict = data.model_dump()
-    storage.items[new_item_id] = data_dict
+    storage.items[new_item_id] = Item(
+        id=new_item_id,
+        name=data.name,
+        price=data.price
+    )
     return JSONResponse(
-        content={'id': new_item_id, **data_dict},
+        content=asdict(storage.items[new_item_id]),
         headers={
             'Location': f'/item/{new_item_id}'
         },
