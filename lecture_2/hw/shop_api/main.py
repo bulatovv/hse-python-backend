@@ -2,13 +2,13 @@ from http import HTTPStatus
 from typing import Annotated, Optional
 from fastapi import FastAPI, HTTPException, Query, Response
 from collections import OrderedDict
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from itertools import groupby, islice
 from types import SimpleNamespace
 from fastapi.responses import JSONResponse
 from lecture_2.hw.shop_api.utils import get_last_key
 from lecture_2.hw.shop_api.models import Cart, Item
-from lecture_2.hw.shop_api.schemas import ItemCreate
+from lecture_2.hw.shop_api.schemas import ItemCreate, ItemReplace, ItemUpdate
 
 app = FastAPI(title="Shop API")
 
@@ -116,3 +116,14 @@ async def get_items(
     )
 
     return list(islice(items, offset, offset + limit))
+
+
+@app.put("/item/{id}")
+async def replace_item(id: int, data: ItemReplace):
+    item = storage.items.get(id)
+
+    if not item:
+        return HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Item not found")
+  
+    storage.items[id] = replace(item, **data.model_dump())
+    return storage.items[id]

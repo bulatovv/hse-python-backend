@@ -211,7 +211,6 @@ def test_get_item_list(query: dict[str, Any], status_code: int) -> None:
             assert all(item["deleted"] is False for item in data)
 
 
-@pytest.mark.xfail()
 @pytest.mark.parametrize(
     ("body", "status_code"),
     [
