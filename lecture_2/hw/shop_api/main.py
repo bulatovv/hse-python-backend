@@ -6,6 +6,7 @@ from dataclasses import asdict, replace
 from itertools import groupby, islice
 from types import SimpleNamespace
 from fastapi.responses import JSONResponse
+from httpx import delete
 from lecture_2.hw.shop_api.utils import get_last_key
 from lecture_2.hw.shop_api.models import Cart, Item
 from lecture_2.hw.shop_api.schemas import ItemCreate, ItemReplace, ItemUpdate
@@ -95,7 +96,7 @@ async def create_item(data: ItemCreate):
 async def get_item(id: int):
     item = storage.items.get(id)
     
-    if not item:
+    if not item or item.deleted:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Item not found")
 
     return item
@@ -123,7 +124,38 @@ async def replace_item(id: int, data: ItemReplace):
     item = storage.items.get(id)
 
     if not item:
-        return HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Item not found")
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Item not found")
   
     storage.items[id] = replace(item, **data.model_dump())
     return storage.items[id]
+
+@app.patch("/item/{id}")
+async def update_item(id: int, data: ItemUpdate):
+    item = storage.items.get(id)
+    if not item:
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Item not found")
+   
+    print(item)
+    if item.deleted:
+        return Response(status_code=HTTPStatus.NOT_MODIFIED)
+    
+    new_item = replace(
+        item,
+        **{
+            key: value for key, value in data.model_dump().items()
+            if value is not None
+        }
+    )
+
+    storage.items[id] = new_item
+
+    return new_item
+
+
+@app.delete("/item/{id}")
+async def delete_item(id: int):
+    item = storage.items.get(id)
+    if not item:
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Item not found")
+
+    item.deleted = True

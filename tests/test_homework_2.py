@@ -235,7 +235,6 @@ def test_put_item(
         assert response.json() == new_item
 
 
-@pytest.mark.xfail()
 @pytest.mark.parametrize(
     ("item", "body", "status_code"),
     [
@@ -273,7 +272,6 @@ def test_patch_item(request, item: str, body: dict[str, Any], status_code: int) 
         assert patched_item == patch_response_body
 
 
-@pytest.mark.xfail()
 def test_delete_item(existing_item: dict[str, Any]) -> None:
     item_id = existing_item["id"]
 
