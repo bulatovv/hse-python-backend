@@ -1,8 +1,9 @@
 from http import HTTPStatus
-from fastapi import FastAPI, HTTPException, Response
+from typing import Annotated, Optional
+from fastapi import FastAPI, HTTPException, Query, Response
 from collections import OrderedDict
 from dataclasses import asdict
-from itertools import groupby
+from itertools import groupby, islice
 from types import SimpleNamespace
 from fastapi.responses import JSONResponse
 from lecture_2.hw.shop_api.utils import get_last_key
@@ -98,3 +99,20 @@ async def get_item(id: int):
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Item not found")
 
     return item
+
+@app.get("/item")
+async def get_items(
+    offset: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(gt=0)] = 10,
+    min_price: Annotated[float | None, Query(ge=0)] = None,
+    max_price: Annotated[float | None, Query(ge=0)] = None,
+    show_deleted: bool = False
+):
+    items = (
+        item for item in storage.items.values()
+        if item.price > (min_price or float('-inf')) and
+           item.price < (max_price or float('+inf')) and
+           (not item.deleted or show_deleted)
+    )
+
+    return list(islice(items, offset, offset + limit))

@@ -168,7 +168,6 @@ def test_post_item() -> None:
     assert item["name"] == data["name"]
 
 
-@pytest.mark.xfail()
 def test_get_item(existing_item: dict[str, Any]) -> None:
     item_id = existing_item["id"]
 
@@ -178,7 +177,6 @@ def test_get_item(existing_item: dict[str, Any]) -> None:
     assert response.json() == existing_item
 
 
-@pytest.mark.xfail()
 @pytest.mark.parametrize(
     ("query", "status_code"),
     [
