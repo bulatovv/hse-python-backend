@@ -55,5 +55,4 @@ class Cart(BaseModel):
         )
 
     def get_total_quantity(self) -> int:
-        print(self._counts.values())
         return sum(q for q in self._counts.values())

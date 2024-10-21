@@ -38,7 +38,6 @@ async def get_carts(
 ) -> list[Cart]:
     min_price = float('-inf') if min_price is None else min_price
     max_price = float('+inf') if max_price is None else max_price
-    
     min_quantity = float('-inf') if min_quantity is None else min_quantity # type: ignore
     max_quantity = float('+inf') if max_quantity is None else max_quantity # type: ignore
 
@@ -48,9 +47,7 @@ async def get_carts(
            (min_quantity < cart.get_total_quantity() < max_quantity)
     )
 
-    data = list(islice(carts, offset, offset + limit))
-    print(data)
-    return data
+    return list(islice(carts, offset, offset + limit))
 
 
 
