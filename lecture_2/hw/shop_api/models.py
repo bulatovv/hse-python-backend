@@ -18,41 +18,42 @@ class Item(BaseModel):
     name: str
     price: float
     deleted: bool = False
+    
+    def __hash__(self):
+        return self.id
 
 class CartPosition(BaseModel):
     id: int
     name: str
     quantity: int
     available: bool
-
-class ItemWrap(BaseModel):
-    item: Item
-
-    def __hash__(self):
-        return self.item.id
+    
 
 class Cart(BaseModel):
     id: int
     _counts: Counter = PrivateAttr(default_factory=Counter)
     
     def add_item(self, item: Item): 
-        self._counts[ItemWrap(item=item)] += 1
+        self._counts[item] += 1
 
     @computed_field
     @property
     def items(self) -> list[CartPosition]:
         return [
             CartPosition(
-                id=wrap.item.id, name=wrap.item.name, quantity=quantity, available=wrap.item.deleted
+                id=item.id, name=item.name, quantity=quantity, available=item.deleted
             )
-            for wrap, quantity in self._counts.items()
+            for item, quantity in self._counts.items()
         ]
 
     @computed_field
     @property
     def price(self) -> float:
         return sum(
-            wrap.item.price * quantity
-            for wrap, quantity in self._counts.items()
+            item.price * quantity
+            for item, quantity in self._counts.items()
         )
 
+    def get_total_quantity(self) -> int:
+        print(self._counts.values())
+        return sum(q for q in self._counts.values())

@@ -113,7 +113,6 @@ def test_get_cart(request, cart: int, not_empty: bool) -> None:
         assert response_json["price"] == 0.0
 
 
-@pytest.mark.xfail()
 @pytest.mark.parametrize(
     ("query", "status_code"),
     [

@@ -27,6 +27,32 @@ async def get_cart(id: int) -> Cart:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Cart not found")
     return cart
 
+@app.get("/cart")
+async def get_carts(
+    offset: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(gt=0)] = 10,
+    min_price: Annotated[float | None, Query(ge=0)] = None,
+    max_price: Annotated[float | None, Query(ge=0)] = None,
+    max_quantity: Annotated[int | None, Query(ge=0)] = None,
+    min_quantity: Annotated[int | None, Query(ge=0)] = None,
+) -> list[Cart]:
+    min_price = float('-inf') if min_price is None else min_price
+    max_price = float('+inf') if max_price is None else max_price
+    
+    min_quantity = float('-inf') if min_quantity is None else min_quantity # type: ignore
+    max_quantity = float('+inf') if max_quantity is None else max_quantity # type: ignore
+
+    carts = (
+        cart for cart in storage.carts.values()
+        if (min_price < cart.price < max_price) and
+           (min_quantity < cart.get_total_quantity() < max_quantity)
+    )
+
+    data = list(islice(carts, offset, offset + limit))
+    print(data)
+    return data
+
+
 
 @app.post("/cart/{cart_id}/add/{item_id}")
 async def add_item_to_cart(cart_id: int, item_id: int):
@@ -72,15 +98,15 @@ async def get_items(
     max_price: Annotated[float | None, Query(ge=0)] = None,
     show_deleted: bool = False
 ) -> list[Item]:
+    min_price = float('-inf') if min_price is None else min_price
+    max_price = float('+inf') if max_price is None else max_price
     items = (
         item for item in storage.items.values()
-        if item.price > (min_price or float('-inf')) and
-           item.price < (max_price or float('+inf')) and
+        if (min_price < item.price < max_price) and
            (not item.deleted or show_deleted)
     )
 
     return list(islice(items, offset, offset + limit))
-
 
 @app.put("/item/{id}")
 async def replace_item(id: int, data: ItemReplace) -> Item:
